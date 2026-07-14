@@ -5,6 +5,7 @@ from excepciones.excepciones_personalizadas import (
 from modelos.cliente import Cliente
 from modelos.entidad import Entidad
 from modelos.servicio import Servicio
+from modelos.reserva_sala import ReservaSala
 from utilidades.configuracion_logs import configurar_logger
 
 
@@ -267,6 +268,94 @@ def probar_servicio_abstracto() -> None:
         )        
 
 
+def probar_reserva_sala_valida() -> None:
+    """Comprueba la creación correcta de una reserva de sala."""
+
+    print("\n--- PRUEBA 6: RESERVA DE SALA VÁLIDA ---")
+
+    try:
+        sala = ReservaSala(
+            codigo="SAL-001",
+            nombre="Sala de Conferencias",
+            tarifa_hora=80000,
+            capacidad=25,
+            disponible=True
+        )
+
+        sala.validar_cantidad_personas(20)
+
+        costo = sala.calcular_costo(
+            duracion=3,
+            descuento=0.05,
+            impuesto=0.19
+        )
+
+    except ServicioInvalidoError as error:
+        print(f"Error al crear o reservar la sala: {error}")
+
+        logger.error(
+            "No fue posible procesar la sala válida: %s",
+            error
+        )
+
+    else:
+        print(sala.describir_servicio())
+        print("Cantidad solicitada: 20 personas")
+        print("Duración solicitada: 3 horas")
+        print("Descuento aplicado: 5 %")
+        print("Impuesto aplicado: 19 %")
+        print(f"Costo total de la reserva: ${costo:,.0f}")
+        print("La reserva de sala fue calculada correctamente.")
+
+        logger.info(
+            "Sala %s procesada correctamente. Costo: %.2f",
+            sala.codigo,
+            costo
+        )
+
+    finally:
+        print("La prueba de la sala válida finalizó.")
+
+        logger.info(
+            "Finalizó la prueba de la sala válida."
+        )
+
+def probar_reserva_sala_invalida() -> None:
+    """Comprueba el control de una capacidad inválida."""
+
+    print("\n--- PRUEBA 7: SALA CON CAPACIDAD INVÁLIDA ---")
+
+    try:
+        ReservaSala(
+            codigo="SAL-002",
+            nombre="Sala Pequeña",
+            tarifa_hora=50000,
+            capacidad=0,
+            disponible=True
+        )
+
+    except ServicioInvalidoError as error:
+        print(f"Error controlado: {error}")
+
+        logger.error(
+            "No fue posible crear la sala por datos inválidos: %s",
+            error
+        )
+
+    else:
+        print("La sala fue creada, pero no debía ser aceptada.")
+
+        logger.warning(
+            "Se aceptó incorrectamente una sala con capacidad inválida."
+        )
+
+    finally:
+        print("La prueba de la sala inválida finalizó.")
+
+        logger.info(
+            "Finalizó la prueba de la sala inválida."
+        )        
+
 if __name__ == "__main__":
     print("SISTEMA INTEGRAL SOFTWARE FJ")
 
@@ -275,5 +364,7 @@ if __name__ == "__main__":
     probar_cliente_valido()
     probar_cliente_invalido()
     probar_servicio_abstracto()
+    probar_reserva_sala_valida()
+    probar_reserva_sala_invalida()
 
     print("\nEjecución finalizada correctamente.")
