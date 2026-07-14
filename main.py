@@ -1,6 +1,10 @@
-from excepciones.excepciones_personalizadas import ClienteInvalidoError
+from excepciones.excepciones_personalizadas import (
+    ClienteInvalidoError,
+    ServicioInvalidoError,
+)
 from modelos.cliente import Cliente
 from modelos.entidad import Entidad
+from modelos.servicio import Servicio
 from utilidades.configuracion_logs import configurar_logger
 
 
@@ -12,6 +16,88 @@ class EntidadPrueba(Entidad):
 
     def mostrar_informacion(self) -> str:
         return f"Entidad de prueba: {self.identificador}"
+    
+class ServicioPrueba(Servicio):
+    """Clase temporal utilizada para comprobar la clase Servicio."""
+
+    def __init__(
+        self,
+        codigo: str,
+        nombre: str,
+        tarifa_base: float,
+        disponible: bool = True
+    ) -> None:
+        """Inicializa un servicio temporal."""
+
+        super().__init__(
+            codigo=codigo,
+            nombre=nombre,
+            disponible=disponible
+        )
+
+        self.tarifa_base = tarifa_base
+        self.validar_parametros()
+
+    def validar_parametros(self) -> None:
+        """Valida la tarifa del servicio temporal."""
+
+        if not isinstance(self.tarifa_base, (int, float)):
+            raise ServicioInvalidoError(
+                "La tarifa base debe ser un valor numérico."
+            )
+
+        if self.tarifa_base <= 0:
+            raise ServicioInvalidoError(
+                "La tarifa base debe ser mayor que cero."
+            )
+
+    def calcular_costo(
+        self,
+        duracion: float,
+        descuento: float = 0.0,
+        impuesto: float = 0.0
+    ) -> float:
+        """Calcula el costo utilizando duración, descuento e impuesto."""
+
+        if not isinstance(duracion, (int, float)):
+            raise ServicioInvalidoError(
+                "La duración debe ser un valor numérico."
+            )
+
+        if duracion <= 0:
+            raise ServicioInvalidoError(
+                "La duración debe ser mayor que cero."
+            )
+
+        if not 0 <= descuento <= 1:
+            raise ServicioInvalidoError(
+                "El descuento debe estar entre 0 y 1."
+            )
+
+        if not 0 <= impuesto <= 1:
+            raise ServicioInvalidoError(
+                "El impuesto debe estar entre 0 y 1."
+            )
+
+        subtotal = self.tarifa_base * duracion
+        subtotal_con_descuento = subtotal * (1 - descuento)
+        total = subtotal_con_descuento * (1 + impuesto)
+
+        return total
+
+    def describir_servicio(self) -> str:
+        """Devuelve la descripción del servicio temporal."""
+
+        estado = (
+            "Disponible"
+            if self.disponible
+            else "No disponible"
+        )
+
+        return (
+            f"Servicio de prueba: {self.nombre} | "
+            f"Estado: {estado}"
+        )    
 
 
 def probar_excepcion() -> None:
@@ -136,6 +222,50 @@ def probar_cliente_invalido() -> None:
         print("La prueba del cliente inválido finalizó.")
         logger.info("Finalizó la prueba del cliente inválido.")
 
+def probar_servicio_abstracto() -> None:
+    """Comprueba la clase abstracta Servicio."""
+
+    print("\n--- PRUEBA 5: CLASE ABSTRACTA SERVICIO ---")
+
+    try:
+        servicio = ServicioPrueba(
+            codigo="SER-001",
+            nombre="Servicio temporal",
+            tarifa_base=50000,
+            disponible=True
+        )
+
+        costo = servicio.calcular_costo(
+            duracion=2,
+            descuento=0.10,
+            impuesto=0.19
+        )
+
+    except (ServicioInvalidoError, TypeError, ValueError) as error:
+        print(f"Error al crear o calcular el servicio: {error}")
+
+        logger.error(
+            "No fue posible probar la clase Servicio: %s",
+            error
+        )
+
+    else:
+        print(servicio.describir_servicio())
+        print(f"Costo calculado: ${costo:,.0f}")
+        print("El servicio fue creado correctamente.")
+
+        logger.info(
+            "Servicio %s creado correctamente. Costo: %.2f",
+            servicio.codigo,
+            costo
+        )
+
+    finally:
+        print("La prueba de la clase Servicio finalizó.")
+        logger.info(
+            "Finalizó la prueba de la clase Servicio."
+        )        
+
 
 if __name__ == "__main__":
     print("SISTEMA INTEGRAL SOFTWARE FJ")
@@ -144,5 +274,6 @@ if __name__ == "__main__":
     probar_entidad()
     probar_cliente_valido()
     probar_cliente_invalido()
+    probar_servicio_abstracto()
 
     print("\nEjecución finalizada correctamente.")
