@@ -2,6 +2,7 @@ from excepciones.excepciones_personalizadas import (
     ClienteInvalidoError,
     ServicioInvalidoError,
 )
+from modelos.alquiler_equipo import AlquilerEquipo
 from modelos.cliente import Cliente
 from modelos.entidad import Entidad
 from modelos.servicio import Servicio
@@ -355,6 +356,108 @@ def probar_reserva_sala_invalida() -> None:
         logger.info(
             "Finalizó la prueba de la sala inválida."
         )        
+def probar_alquiler_equipo_valido() -> None:
+    """Comprueba un alquiler correcto de equipos."""
+
+    print("\n--- PRUEBA 8: ALQUILER DE EQUIPO VÁLIDO ---")
+
+    try:
+        equipo = AlquilerEquipo(
+            codigo="EQU-001",
+            nombre="Computador portátil empresarial",
+            tarifa_dia=120000,
+            cantidad_disponible=10,
+            disponible=True
+        )
+
+        cantidad_solicitada = 3
+        duracion_dias = 2
+
+        equipo.validar_cantidad_solicitada(
+            cantidad_solicitada
+        )
+
+        costo = equipo.calcular_costo(
+            duracion=duracion_dias,
+            descuento=0.10,
+            impuesto=0.19,
+            cantidad=cantidad_solicitada
+        )
+
+    except ServicioInvalidoError as error:
+        print(f"Error al procesar el alquiler: {error}")
+
+        logger.error(
+            "No fue posible procesar el alquiler válido: %s",
+            error
+        )
+
+    else:
+        print(equipo.describir_servicio())
+        print(f"Cantidad solicitada: {cantidad_solicitada}")
+        print(f"Duración del alquiler: {duracion_dias} días")
+        print("Descuento aplicado: 10 %")
+        print("Impuesto aplicado: 19 %")
+        print(f"Costo total del alquiler: ${costo:,.0f}")
+        print("El alquiler fue calculado correctamente.")
+
+        logger.info(
+            "Equipo %s alquilado correctamente. Costo: %.2f",
+            equipo.codigo,
+            costo
+        )
+
+    finally:
+        print("La prueba del alquiler válido finalizó.")
+
+        logger.info(
+            "Finalizó la prueba del alquiler válido."
+        )
+def probar_alquiler_equipo_invalido() -> None:
+    """Comprueba una solicitud superior a la disponibilidad."""
+
+    print(
+        "\n--- PRUEBA 9: CANTIDAD DE EQUIPOS NO DISPONIBLE ---"
+    )
+
+    try:
+        equipo = AlquilerEquipo(
+            codigo="EQU-002",
+            nombre="Proyector multimedia",
+            tarifa_dia=90000,
+            cantidad_disponible=4,
+            disponible=True
+        )
+
+        equipo.validar_cantidad_solicitada(6)
+
+    except ServicioInvalidoError as error:
+        print(f"Error controlado: {error}")
+
+        logger.error(
+            "No fue posible procesar el alquiler "
+            "por cantidad inválida: %s",
+            error
+        )
+
+    else:
+        print(
+            "El alquiler fue aceptado, pero la cantidad "
+            "no estaba disponible."
+        )
+
+        logger.warning(
+            "Se aceptó incorrectamente una cantidad superior "
+            "a la disponibilidad."
+        )
+
+    finally:
+        print("La prueba del alquiler inválido finalizó.")
+
+        logger.info(
+            "Finalizó la prueba del alquiler inválido."
+        )        
+
 
 if __name__ == "__main__":
     print("SISTEMA INTEGRAL SOFTWARE FJ")
@@ -366,5 +469,7 @@ if __name__ == "__main__":
     probar_servicio_abstracto()
     probar_reserva_sala_valida()
     probar_reserva_sala_invalida()
+    probar_alquiler_equipo_valido()
+    probar_alquiler_equipo_invalido()
 
     print("\nEjecución finalizada correctamente.")
