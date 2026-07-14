@@ -3,6 +3,7 @@ from excepciones.excepciones_personalizadas import (
     ServicioInvalidoError,
 )
 from modelos.alquiler_equipo import AlquilerEquipo
+from modelos.asesoria_especializada import AsesoriaEspecializada
 from modelos.cliente import Cliente
 from modelos.entidad import Entidad
 from modelos.servicio import Servicio
@@ -458,6 +459,98 @@ def probar_alquiler_equipo_invalido() -> None:
             "Finalizó la prueba del alquiler inválido."
         )        
 
+def probar_asesoria_valida() -> None:
+    """Comprueba una asesoría especializada válida."""
+
+    print("\n--- PRUEBA 10: ASESORÍA ESPECIALIZADA VÁLIDA ---")
+
+    try:
+        asesoria = AsesoriaEspecializada(
+            codigo="ASE-001",
+            nombre="Consultoría en arquitectura de software",
+            tarifa_hora=150000,
+            especialidad="Arquitectura de software",
+            nivel_experiencia="Senior",
+            disponible=True
+        )
+
+        duracion_horas = 5
+
+        costo = asesoria.calcular_costo(
+            duracion=duracion_horas,
+            descuento=0.0,
+            impuesto=0.19
+        )
+
+    except ServicioInvalidoError as error:
+        print(f"Error al procesar la asesoría: {error}")
+
+        logger.error(
+            "No fue posible procesar la asesoría válida: %s",
+            error
+        )
+
+    else:
+        print(asesoria.describir_servicio())
+        print(f"Duración solicitada: {duracion_horas} horas")
+        print("Descuento automático por duración: 10 %")
+        print("Impuesto aplicado: 19 %")
+        print(f"Costo total de la asesoría: ${costo:,.0f}")
+        print("La asesoría fue calculada correctamente.")
+
+        logger.info(
+            "Asesoría %s procesada correctamente. Costo: %.2f",
+            asesoria.codigo,
+            costo
+        )
+
+    finally:
+        print("La prueba de la asesoría válida finalizó.")
+
+        logger.info(
+            "Finalizó la prueba de la asesoría válida."
+        )
+
+def probar_asesoria_invalida() -> None:
+    """Comprueba una asesoría sin especialidad."""
+
+    print("\n--- PRUEBA 11: ASESORÍA SIN ESPECIALIDAD ---")
+
+    try:
+        AsesoriaEspecializada(
+            codigo="ASE-002",
+            nombre="Consultoría tecnológica",
+            tarifa_hora=120000,
+            especialidad="",
+            nivel_experiencia="Semisenior",
+            disponible=True
+        )
+
+    except ServicioInvalidoError as error:
+        print(f"Error controlado: {error}")
+
+        logger.error(
+            "No fue posible crear la asesoría "
+            "por datos inválidos: %s",
+            error
+        )
+
+    else:
+        print(
+            "La asesoría fue creada, pero no debía ser aceptada."
+        )
+
+        logger.warning(
+            "Se aceptó incorrectamente una asesoría sin especialidad."
+        )
+
+    finally:
+        print("La prueba de la asesoría inválida finalizó.")
+
+        logger.info(
+            "Finalizó la prueba de la asesoría inválida."
+        )        
+
 
 if __name__ == "__main__":
     print("SISTEMA INTEGRAL SOFTWARE FJ")
@@ -471,5 +564,7 @@ if __name__ == "__main__":
     probar_reserva_sala_invalida()
     probar_alquiler_equipo_valido()
     probar_alquiler_equipo_invalido()
+    probar_asesoria_valida()
+    probar_asesoria_invalida()
 
     print("\nEjecución finalizada correctamente.")
