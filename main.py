@@ -1,8 +1,12 @@
 from excepciones.excepciones_personalizadas import ClienteInvalidoError
+from utilidades.configuracion_logs import configurar_logger
+
+
+logger = configurar_logger()
 
 
 def probar_excepcion() -> None:
-    """Comprueba que las excepciones personalizadas funcionen."""
+    """Comprueba las excepciones y el archivo de logs."""
 
     try:
         nombre = ""
@@ -14,12 +18,15 @@ def probar_excepcion() -> None:
 
     except ClienteInvalidoError as error:
         print(f"Error controlado: {error}")
+        logger.error("No fue posible crear el cliente: %s", error)
 
     else:
         print("El cliente fue creado correctamente.")
+        logger.info("Cliente creado correctamente.")
 
     finally:
-        print("Prueba correcta: las excepciones personalizadas funcionan.")
+        print("La prueba de excepciones finalizó.")
+        logger.info("Finalizó la prueba de excepciones.")
 
 
 if __name__ == "__main__":
