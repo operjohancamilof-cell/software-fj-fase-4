@@ -14,6 +14,7 @@ from modelos.reserva_sala import ReservaSala
 from modelos.reserva import Reserva
 from gestor.sistema_reservas import SistemaReservas
 from utilidades.configuracion_logs import configurar_logger
+from utilidades.validadores import convertir_duracion
 
 
 logger = configurar_logger()
@@ -926,6 +927,81 @@ def probar_cliente_duplicado() -> None:
             "Finalizó la prueba del cliente duplicado."
         )        
 
+def probar_conversion_duracion_valida() -> None:
+    """Comprueba la conversión correcta de una duración."""
+
+    print("\n--- PRUEBA 18: CONVERSIÓN DE DURACIÓN VÁLIDA ---")
+
+    try:
+        duracion = convertir_duracion("5")
+
+    except ReservaInvalidaError as error:
+        print(f"Error al convertir la duración: {error}")
+
+        logger.error(
+            "No fue posible convertir una duración válida: %s",
+            error
+        )
+
+    else:
+        print(f"Duración convertida correctamente: {duracion} horas")
+        print("La conversión válida funcionó correctamente.")
+
+        logger.info(
+            "Duración convertida correctamente: %s horas.",
+            duracion
+        )
+
+    finally:
+        print("La prueba de conversión válida finalizó.")
+
+        logger.info(
+            "Finalizó la prueba de conversión válida."
+        )
+
+
+def probar_encadenamiento_excepciones() -> None:
+    """Comprueba el encadenamiento de una excepción ValueError."""
+
+    print("\n--- PRUEBA 19: ENCADENAMIENTO DE EXCEPCIONES ---")
+
+    try:
+        convertir_duracion("cinco")
+
+    except ReservaInvalidaError as error:
+        print(f"Error controlado: {error}")
+
+        causa_original = error.__cause__
+
+        if causa_original is not None:
+            print(
+                "Causa original conservada: "
+                f"{type(causa_original).__name__}"
+            )
+            print(
+                f"Mensaje original: {causa_original}"
+            )
+
+        logger.exception(
+            "Se controló un error de conversión con encadenamiento."
+        )
+
+    else:
+        print(
+            "La duración fue aceptada, pero el valor "
+            "no era un número entero."
+        )
+
+        logger.warning(
+            "Se aceptó incorrectamente una duración no numérica."
+        )
+
+    finally:
+        print("La prueba de encadenamiento finalizó.")
+
+        logger.info(
+            "Finalizó la prueba de encadenamiento."
+        )
 
 if __name__ == "__main__":
     print("SISTEMA INTEGRAL SOFTWARE FJ")
@@ -947,5 +1023,7 @@ if __name__ == "__main__":
     probar_cancelacion_doble()
     probar_gestor_valido()
     probar_cliente_duplicado()
+    probar_conversion_duracion_valida()
+    probar_encadenamiento_excepciones()
 
     print("\nEjecución finalizada correctamente.")
