@@ -12,6 +12,7 @@ from modelos.entidad import Entidad
 from modelos.servicio import Servicio
 from modelos.reserva_sala import ReservaSala
 from modelos.reserva import Reserva
+from gestor.sistema_reservas import SistemaReservas
 from utilidades.configuracion_logs import configurar_logger
 
 
@@ -797,6 +798,134 @@ def probar_cancelacion_doble() -> None:
             "Finalizó la prueba de cancelación doble."
         )
 
+def probar_gestor_valido() -> None:
+    """Comprueba el registro y búsqueda mediante listas internas."""
+
+    print("\n--- PRUEBA 16: GESTOR CON LISTAS INTERNAS ---")
+
+    try:
+        sistema = SistemaReservas()
+
+        cliente = Cliente(
+            identificacion="10010010",
+            nombre="Daniela Rodríguez",
+            correo="daniela.rodriguez@email.com",
+            telefono="3051234567"
+        )
+
+        sala = ReservaSala(
+            codigo="SAL-010",
+            nombre="Sala de Reuniones",
+            tarifa_hora=70000,
+            capacidad=10,
+            disponible=True
+        )
+
+        reserva = Reserva(
+            codigo="RES-010",
+            cliente=cliente,
+            servicio=sala,
+            duracion=2
+        )
+
+        sistema.registrar_cliente(cliente)
+        sistema.registrar_servicio(sala)
+        sistema.registrar_reserva(reserva)
+
+        cliente_encontrado = sistema.buscar_cliente("10010010")
+        servicio_encontrado = sistema.buscar_servicio("SAL-010")
+        reserva_encontrada = sistema.buscar_reserva("RES-010")
+
+    except (
+        ClienteInvalidoError,
+        ServicioInvalidoError,
+        ReservaInvalidaError
+    ) as error:
+        print(f"Error al utilizar el gestor: {error}")
+
+        logger.error(
+            "No fue posible probar el gestor: %s",
+            error
+        )
+
+    else:
+        print(sistema.mostrar_resumen())
+        print(
+            f"Cliente encontrado: {cliente_encontrado.nombre}"
+        )
+        print(
+            f"Servicio encontrado: {servicio_encontrado.nombre}"
+        )
+        print(
+            f"Reserva encontrada: {reserva_encontrada.codigo}"
+        )
+        print("El gestor funcionó correctamente.")
+
+        logger.info(
+            "Gestor probado correctamente con %s clientes, "
+            "%s servicios y %s reservas.",
+            len(sistema.clientes),
+            len(sistema.servicios),
+            len(sistema.reservas)
+        )
+
+    finally:
+        print("La prueba del gestor finalizó.")
+
+        logger.info(
+            "Finalizó la prueba del gestor."
+        )
+
+def probar_cliente_duplicado() -> None:
+    """Comprueba que el gestor no permita clientes duplicados."""
+
+    print("\n--- PRUEBA 17: CLIENTE DUPLICADO ---")
+
+    try:
+        sistema = SistemaReservas()
+
+        primer_cliente = Cliente(
+            identificacion="10010010",
+            nombre="Daniela Rodríguez",
+            correo="daniela.rodriguez@email.com",
+            telefono="3051234567"
+        )
+
+        segundo_cliente = Cliente(
+            identificacion="10010010",
+            nombre="Pedro Hernández",
+            correo="pedro.hernandez@email.com",
+            telefono="3061234567"
+        )
+
+        sistema.registrar_cliente(primer_cliente)
+        sistema.registrar_cliente(segundo_cliente)
+
+    except ClienteInvalidoError as error:
+        print(f"Error controlado: {error}")
+
+        logger.error(
+            "No fue posible registrar el cliente duplicado: %s",
+            error
+        )
+
+    else:
+        print(
+            "El cliente duplicado fue registrado, "
+            "pero no debía permitirse."
+        )
+
+        logger.warning(
+            "Se permitió incorrectamente un cliente duplicado."
+        )
+
+    finally:
+        print("La prueba del cliente duplicado finalizó.")
+
+        logger.info(
+            "Finalizó la prueba del cliente duplicado."
+        )        
+
 
 if __name__ == "__main__":
     print("SISTEMA INTEGRAL SOFTWARE FJ")
@@ -816,5 +945,7 @@ if __name__ == "__main__":
     probar_reserva_sin_confirmar()
     probar_reserva_servicio_no_disponible()
     probar_cancelacion_doble()
+    probar_gestor_valido()
+    probar_cliente_duplicado()
 
     print("\nEjecución finalizada correctamente.")
