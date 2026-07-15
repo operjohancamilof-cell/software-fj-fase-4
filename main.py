@@ -1,6 +1,9 @@
 from excepciones.excepciones_personalizadas import (
     ClienteInvalidoError,
+    OperacionNoPermitidaError,
+    ReservaInvalidaError,
     ServicioInvalidoError,
+    ServicioNoDisponibleError,
 )
 from modelos.alquiler_equipo import AlquilerEquipo
 from modelos.asesoria_especializada import AsesoriaEspecializada
@@ -8,6 +11,7 @@ from modelos.cliente import Cliente
 from modelos.entidad import Entidad
 from modelos.servicio import Servicio
 from modelos.reserva_sala import ReservaSala
+from modelos.reserva import Reserva
 from utilidades.configuracion_logs import configurar_logger
 
 
@@ -551,6 +555,248 @@ def probar_asesoria_invalida() -> None:
             "Finalizó la prueba de la asesoría inválida."
         )        
 
+def probar_reserva_valida() -> None:
+    """Comprueba la creación, confirmación y procesamiento de una reserva."""
+
+    print("\n--- PRUEBA 12: RESERVA VÁLIDA ---")
+
+    try:
+        cliente = Cliente(
+            identificacion="10987654",
+            nombre="Laura Martínez",
+            correo="laura.martinez@email.com",
+            telefono="3011234567"
+        )
+
+        sala = ReservaSala(
+            codigo="SAL-003",
+            nombre="Sala Ejecutiva",
+            tarifa_hora=95000,
+            capacidad=12,
+            disponible=True
+        )
+
+        reserva = Reserva(
+            codigo="RES-001",
+            cliente=cliente,
+            servicio=sala,
+            duracion=2,
+            descuento=0.05,
+            impuesto=0.19
+        )
+
+        print(f"Estado inicial: {reserva.estado}")
+
+        reserva.confirmar()
+        print(f"Estado después de confirmar: {reserva.estado}")
+
+        reserva.procesar()
+        print(f"Estado después de procesar: {reserva.estado}")
+
+    except (
+        ClienteInvalidoError,
+        ReservaInvalidaError,
+        ServicioInvalidoError,
+        ServicioNoDisponibleError,
+        OperacionNoPermitidaError
+    ) as error:
+        print(f"Error al procesar la reserva: {error}")
+
+        logger.error(
+            "No fue posible procesar la reserva válida: %s",
+            error
+        )
+
+    else:
+        print(reserva.mostrar_resumen())
+        print("La reserva fue procesada correctamente.")
+
+        logger.info(
+            "Reserva %s procesada correctamente. Estado: %s",
+            reserva.codigo,
+            reserva.estado
+        )
+
+    finally:
+        print("La prueba de la reserva válida finalizó.")
+
+        logger.info(
+            "Finalizó la prueba de la reserva válida."
+        )
+
+def probar_reserva_sin_confirmar() -> None:
+    """Comprueba que una reserva pendiente no pueda procesarse."""
+
+    print("\n--- PRUEBA 13: PROCESAR RESERVA SIN CONFIRMAR ---")
+
+    try:
+        cliente = Cliente(
+            identificacion="10987655",
+            nombre="Carlos Ramírez",
+            correo="carlos.ramirez@email.com",
+            telefono="3021234567"
+        )
+
+        asesoria = AsesoriaEspecializada(
+            codigo="ASE-003",
+            nombre="Asesoría en Python",
+            tarifa_hora=130000,
+            especialidad="Programación orientada a objetos",
+            nivel_experiencia="Senior",
+            disponible=True
+        )
+
+        reserva = Reserva(
+            codigo="RES-002",
+            cliente=cliente,
+            servicio=asesoria,
+            duracion=3,
+            impuesto=0.19
+        )
+
+        reserva.procesar()
+
+    except OperacionNoPermitidaError as error:
+        print(f"Error controlado: {error}")
+
+        logger.error(
+            "No fue posible procesar una reserva pendiente: %s",
+            error
+        )
+
+    else:
+        print(
+            "La reserva fue procesada sin confirmar, "
+            "pero no debía permitirse."
+        )
+
+        logger.warning(
+            "Se procesó incorrectamente una reserva pendiente."
+        )
+
+    finally:
+        print("La prueba de procesamiento inválido finalizó.")
+
+        logger.info(
+            "Finalizó la prueba de procesamiento inválido."
+        )        
+
+
+def probar_reserva_servicio_no_disponible() -> None:
+    """Comprueba que no pueda reservarse un servicio no disponible."""
+
+    print("\n--- PRUEBA 14: SERVICIO NO DISPONIBLE ---")
+
+    try:
+        cliente = Cliente(
+            identificacion="10987656",
+            nombre="Andrea Gómez",
+            correo="andrea.gomez@email.com",
+            telefono="3031234567"
+        )
+
+        sala = ReservaSala(
+            codigo="SAL-004",
+            nombre="Sala en mantenimiento",
+            tarifa_hora=70000,
+            capacidad=15,
+            disponible=False
+        )
+
+        Reserva(
+            codigo="RES-003",
+            cliente=cliente,
+            servicio=sala,
+            duracion=2
+        )
+
+    except ServicioNoDisponibleError as error:
+        print(f"Error controlado: {error}")
+
+        logger.error(
+            "No fue posible crear la reserva por indisponibilidad: %s",
+            error
+        )
+
+    else:
+        print(
+            "La reserva fue creada, pero el servicio "
+            "no estaba disponible."
+        )
+
+        logger.warning(
+            "Se aceptó incorrectamente un servicio no disponible."
+        )
+
+    finally:
+        print("La prueba de servicio no disponible finalizó.")
+
+        logger.info(
+            "Finalizó la prueba de servicio no disponible."
+        )
+
+def probar_cancelacion_doble() -> None:
+    """Comprueba que una reserva no pueda cancelarse dos veces."""
+
+    print("\n--- PRUEBA 15: CANCELACIÓN DOBLE ---")
+
+    try:
+        cliente = Cliente(
+            identificacion="10987657",
+            nombre="Felipe Torres",
+            correo="felipe.torres@email.com",
+            telefono="3041234567"
+        )
+
+        sala = ReservaSala(
+            codigo="SAL-005",
+            nombre="Sala de Capacitación",
+            tarifa_hora=60000,
+            capacidad=20,
+            disponible=True
+        )
+
+        reserva = Reserva(
+            codigo="RES-004",
+            cliente=cliente,
+            servicio=sala,
+            duracion=4
+        )
+
+        reserva.cancelar()
+
+        print(
+            f"Estado después de la primera cancelación: "
+            f"{reserva.estado}"
+        )
+
+        reserva.cancelar()
+
+    except OperacionNoPermitidaError as error:
+        print(f"Error controlado: {error}")
+
+        logger.error(
+            "No fue posible cancelar nuevamente la reserva: %s",
+            error
+        )
+
+    else:
+        print(
+            "La reserva fue cancelada dos veces, "
+            "pero no debía permitirse."
+        )
+
+        logger.warning(
+            "Se permitió incorrectamente una cancelación doble."
+        )
+
+    finally:
+        print("La prueba de cancelación doble finalizó.")
+
+        logger.info(
+            "Finalizó la prueba de cancelación doble."
+        )
+
 
 if __name__ == "__main__":
     print("SISTEMA INTEGRAL SOFTWARE FJ")
@@ -566,5 +812,9 @@ if __name__ == "__main__":
     probar_alquiler_equipo_invalido()
     probar_asesoria_valida()
     probar_asesoria_invalida()
+    probar_reserva_valida()
+    probar_reserva_sin_confirmar()
+    probar_reserva_servicio_no_disponible()
+    probar_cancelacion_doble()
 
     print("\nEjecución finalizada correctamente.")
